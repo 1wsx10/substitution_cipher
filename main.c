@@ -79,11 +79,15 @@ int read_textfile(char **dest_addr, size_t *dest_len, char *fname) {
 
 
 /* must be <= 26 */
-#define MAX_LETTERS 2
+#define MAX_LETTERS 7
 
 int main(int argc, char *argv[]) {
 	// init frequencies of each letter in english language
-	char eng_letter_freq[] = {'E', 'T', 'A', 'O', 'I', 'N', 'S', 'H', 'R', 'D', 'L', 'U', 'C', 'M', 'W', 'F', 'Y', 'G', 'P', 'B', 'V', 'K', 'X', 'J', 'Q', 'Z'};
+	//char eng_letter_freq[] = {'E', 'T', 'A', 'O', 'I', 'N', 'S', 'H', 'R', 'D', 'L', 'U', 'C', 'M', 'W', 'F', 'Y', 'G', 'P', 'B', 'V', 'K', 'X', 'J', 'Q', 'Z'};
+	//alternate
+	//char eng_letter_freq[] = {'E', 'T', 'A', 'I', 'N', 'O', 'S', 'H', 'R', 'D', 'L', 'U', 'C', 'M', 'F', 'W', 'Y', 'G', 'P', 'B', 'V', 'K', 'Q', 'J', 'X', 'Z'};
+	// in the concise dictionary
+	char eng_letter_freq[] = {'E', 'A', 'R', 'I', 'O', 'T', 'N', 'S', 'L', 'C', 'U', 'D', 'P', 'M', 'H', 'G', 'B', 'F', 'Y', 'W', 'K', 'V', 'X', 'Z', 'J', 'Q'};
 
 	// place where the ciphertext is stored
 	char *cipher = NULL;
@@ -114,7 +118,8 @@ int main(int argc, char *argv[]) {
 	LF freq[26] = { { .c='A', .f=0 }, { .c='B', .f=0 }, { .c='C', .f=0 }, { .c='D', .f=0 }, { .c='E', .f=0 }, { .c='F', .f=0 }, { .c='G', .f=0 }, { .c='H', .f=0 }, { .c='I', .f=0 }, { .c='J', .f=0 }, { .c='K', .f=0 }, { .c='L', .f=0 }, { .c='M', .f=0 }, { .c='N', .f=0 }, { .c='O', .f=0 }, { .c='P', .f=0 }, { .c='Q', .f=0 }, { .c='R', .f=0 }, { .c='S', .f=0 }, { .c='T', .f=0 }, { .c='U', .f=0 }, { .c='V', .f=0 }, { .c='W', .f=0 }, { .c='X', .f=0 }, { .c='Y', .f=0 }, { .c='Z', .f=0 } };
 
 	//init substitutions
-	//LC subst[] = { };
+	LC subst[] = { };
+	/*
 	LC subst[] = { 
 		{.from='G', .to='o'}, 
 		{.from='F', .to='n'}, // for 'different'
@@ -141,6 +146,7 @@ int main(int argc, char *argv[]) {
 		{.from='A', .to='b'},//symbols
 		{.from='V', .to='v'},
 	};
+	*/
 	//LC subst[] = { { .from='C', .to='s' }, { .from='P', .to='u' }, { .from='I', .to='h' } };
 
 	printf("counting frequencies...\n");
