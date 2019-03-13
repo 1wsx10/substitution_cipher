@@ -171,9 +171,9 @@ int main(int argc, char *argv[]) {
 		//printf("%c: %d\n", (char)(i+65), freq[i].f);
 		if(i < MAX_LETTERS) {
 			//    freq in text, char cipher, char plain
-			printf("%2.2f: %c -> %c\n", 100 * (float)freq[i].f / strlen(cipher), freq[i].c, eng_letter_freq[i]+32);
+			printf("%5.2f: %c -> %c\n", 100 * (float)freq[i].f / strlen(cipher), freq[i].c, eng_letter_freq[i]+32);
 		} else {
-			printf("%2.2f: %c    %c\n", 100 * (float)freq[i].f / strlen(cipher), freq[i].c, eng_letter_freq[i]+32);
+			printf("%5.2f: %c    %c\n", 100 * (float)freq[i].f / strlen(cipher), freq[i].c, eng_letter_freq[i]+32);
 		}
 	}
 
