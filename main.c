@@ -82,14 +82,15 @@ int read_textfile(char **dest_addr, size_t *dest_len, char *fname) {
 #define MAX_LETTERS 2
 
 int main(int argc, char *argv[]) {
+	// init frequencies of each letter in english language
 	char eng_letter_freq[] = {'E', 'T', 'A', 'O', 'I', 'N', 'S', 'H', 'R', 'D', 'L', 'U', 'C', 'M', 'W', 'F', 'Y', 'G', 'P', 'B', 'V', 'K', 'X', 'J', 'Q', 'Z'};
-	//char eng_letter_freq[] = {'E', 'A', 'R', 'N', 'S', 'T', 'S', 'H', 'R', 'D', 'L', 'U', 'C', 'M', 'W', 'F', 'Y', 'G', 'P', 'B', 'V', 'K', 'X', 'J', 'Q', 'Z'};
 
 	// place where the ciphertext is stored
 	char *cipher = NULL;
 	size_t cipher_len = 0;
 	char *fname = "./ciphertext";
 
+	//handle arguments
 	switch(argc) {
 		case INT_MAX:
 		case 3:
@@ -106,12 +107,13 @@ int main(int argc, char *argv[]) {
 		return err;
 	}
 
-	//init plaintext (same size as cipher)
+	// init plaintext (same size as cipher)
 	char plntxt[cipher_len];
 
-	// array of frequencies of each letter
+	// init array of frequency counts of each letter
 	LF freq[26] = { { .c='A', .f=0 }, { .c='B', .f=0 }, { .c='C', .f=0 }, { .c='D', .f=0 }, { .c='E', .f=0 }, { .c='F', .f=0 }, { .c='G', .f=0 }, { .c='H', .f=0 }, { .c='I', .f=0 }, { .c='J', .f=0 }, { .c='K', .f=0 }, { .c='L', .f=0 }, { .c='M', .f=0 }, { .c='N', .f=0 }, { .c='O', .f=0 }, { .c='P', .f=0 }, { .c='Q', .f=0 }, { .c='R', .f=0 }, { .c='S', .f=0 }, { .c='T', .f=0 }, { .c='U', .f=0 }, { .c='V', .f=0 }, { .c='W', .f=0 }, { .c='X', .f=0 }, { .c='Y', .f=0 }, { .c='Z', .f=0 } };
 
+	//init substitutions
 	//LC subst[] = { };
 	LC subst[] = { 
 		{.from='G', .to='o'}, 
@@ -153,16 +155,10 @@ int main(int argc, char *argv[]) {
 		freq[(int)cipher[i] - 65].f++;
 	}
 
-#if 0
-	for(int i = 0; i < 26; i++) {
-		//printf("%c: %d\n", (char)(i+65), freq[i].f);
-		printf("%c: %2.2f\n", freq[i].c, 100 * (float)freq[i].f / strlen(cipher));
-	}
-#endif
-
 	//sort the frequency count
 	printf("sorting frequencies....\n");
 	qsort(&freq[0], 26, sizeof(LF), comp_letter_freq);
+
 
 	//print the frequencies, and which substitutions will happen
 	for(int i = 0; i < 26; i++) {
@@ -175,6 +171,11 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
+
+	// copy all text from cipher to plaintext
+	// the most frequent letters are replaced with
+	//	the most frequent ones in english
+	// then the others are substituted from hard coded array (above)
 	for(int i = 0; i < strlen(cipher); i++) {
 		//itterate the letters
 
