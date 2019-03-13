@@ -191,22 +191,23 @@ int main(int argc, char *argv[]) {
 			continue;
 		}
 
-		// replace only the most common letters
+		// replace ones that are listed
 		int replaced = 0;
-		for(int j = 0; j < MAX_LETTERS && j < 26; j++) {
-			if(cipher[i] == freq[j].c) {
+		for(int j = 0; j < sizeof(subst) / sizeof(subst[0]); j++) {
+			if(cipher[i] == subst[j].from) {
 				replaced = 1;
-				plntxt[i] = eng_letter_freq[j] + 32;
+				plntxt[i] = subst[j].to;
 				break;
 			}
 		}
 
-		//copy across the rest of the letters
+		// copy across the rest of the letters
+		// and replace the most common letters with ones from english
 		if(!replaced) {
 			plntxt[i] = cipher[i];
-			for(int j = 0; j < sizeof(subst) / sizeof(subst[0]); j++) {
-				if(cipher[i] == subst[j].from) {
-					plntxt[i] = subst[j].to;
+			for(int j = 0; j < MAX_LETTERS && j < 26; j++) {
+				if(cipher[i] == freq[j].c) {
+					plntxt[i] = eng_letter_freq[j] + 32;
 					break;
 				}
 			}
