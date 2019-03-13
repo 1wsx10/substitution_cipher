@@ -15,14 +15,68 @@ typedef struct letter_substitution {
 	char to;
 } LC;
 
+//compare 'letter_substitution' alphabetically
 int comp_letter_alph(const void *a_, const void *b_) {
 	LF const *a = (LF const *)a_, *b = (LF const *)b_;
 	return strncmp(&a->c, &a->c, 1);
 }
+//compare 'letter_substitution' by frequency
 int comp_letter_freq(const void *a_, const void *b_) {
 	LF const *a = (LF const *)a_, *b = (LF const *)b_;
 	return b->f - a->f;
 }
+
+/** read a text file into a string on the heap
+ * @param dest	address of ptr to string where dest is stored
+ *				dest should be NULL, or previously malloc'd
+ *				dest should be freed
+ * @param dest_len	the length of dest, after it has been realloc'd
+ * @param fname		the name of the file to read
+ * @return success	0 on success, errno on anything else
+ *					if error, no realloc is called; no free nessecary
+ */
+int read_textfile(char **dest_addr, size_t *dest_len, char *fname) {
+	//set destval to the position pointed to by dest_addr
+	char *destval = *dest_addr;
+	//this is because the pointer changes when you use realloc
+
+	FILE *file = fopen(fname, "r");
+	if(!file) {
+		//no such file or directory
+		perror(fname);
+		return errno;
+	}
+
+	size_t bufmax = 256;
+	size_t buflen;
+	do {
+		char buf[bufmax];
+		buflen = fread(buf, sizeof(*buf), bufmax, file);
+
+		//realloc + 1, so that there is room for null byte added later
+		destval = realloc(destval, *dest_len + buflen + 1);
+
+		//copy buffer into dest
+		strncpy(destval + *dest_len, buf, buflen);
+		*dest_len += buflen;
+	} while(buflen == bufmax);// buflen is 0 (or <= bufmax) at eof
+	fclose(file);
+
+	destval[*dest_len] = '\0';
+	*dest_len += 1;
+
+#if 0
+	//test for off-by-ones
+	printf("dest_len: %d\n", *dest_len);
+	printf("strlen(dest): %d\n", strlen(destval));
+#endif
+
+	//re-set the address of destination, since it has probably been changed
+	*dest_addr = destval;
+
+	return 0;//success
+}
+
 
 /* must be <= 26 */
 #define MAX_LETTERS 2
@@ -31,10 +85,11 @@ int main(int argc, char *argv[]) {
 	char eng_letter_freq[] = {'E', 'T', 'A', 'O', 'I', 'N', 'S', 'H', 'R', 'D', 'L', 'U', 'C', 'M', 'W', 'F', 'Y', 'G', 'P', 'B', 'V', 'K', 'X', 'J', 'Q', 'Z'};
 	//char eng_letter_freq[] = {'E', 'A', 'R', 'N', 'S', 'T', 'S', 'H', 'R', 'D', 'L', 'U', 'C', 'M', 'W', 'F', 'Y', 'G', 'P', 'B', 'V', 'K', 'X', 'J', 'Q', 'Z'};
 
+	// place where the ciphertext is stored
 	char *cipher = NULL;
-	int cipher_len = 0;
-
+	size_t cipher_len = 0;
 	char *fname = "./ciphertext";
+
 	switch(argc) {
 		case INT_MAX:
 		case 3:
@@ -46,34 +101,12 @@ int main(int argc, char *argv[]) {
 	}
 
 	printf("opening cipher \"%s\"\n", fname);
-	FILE *file = fopen(fname, "r");
-	if(!file) {
-		//no such file or directory
-		perror(fname);
-		return errno;
+	int err;
+	if((err = read_textfile(&cipher, &cipher_len, fname))) {
+		return err;
 	}
-#define BUFLEN 256
-	size_t buflen;
-	do {
-		char buf[BUFLEN];
-		buflen = fread(buf, sizeof(*buf), BUFLEN, file);
 
-		//realloc + 1, so that there is room for null byte added later
-		cipher = realloc(cipher, cipher_len + buflen + 1);
-
-		//
-		strncpy(cipher + cipher_len, buf, buflen);
-		cipher_len += buflen;
-	} while(buflen == BUFLEN);// fread 
-	fclose(file);
-
-	cipher[cipher_len] = '\0';
-	cipher_len += 1;
-	printf("length of cipher: %d\n", cipher_len);
-
-	//init cipher and plaintext
-	//char *cipher = "GFS WMY OG LGDVS MF SFNKYHOSU ESLLMRS, PC WS BFGW POL DMFRQMRS, PL OG CPFU M UPCCSKSFO HDMPFOSXO GC OIS LMES DMFRQMRS DGFR SFGQRI OG CPDD GFS LISSO GK LG, MFU OISF WS NGQFO OIS GNNQKKSFNSL GC SMNI DSOOSK. WS NMDD OIS EGLO CKSJQSFODY GNNQKKPFR DSOOSK OIS 'CPKLO', OIS FSXO EGLO GNNQKKPFR DSOOSK OIS 'LSNGFU' OIS CGDDGWPFR EGLO GNNQKKPFR DSOOSK OIS 'OIPKU', MFU LG GF, QFOPD WS MNNGQFO CGK MDD OIS UPCCSKSFO DSOOSKL PF OIS HDMPFOSXO LMEHDS. OISF WS DGGB MO OIS NPHISK OSXO WS WMFO OG LGDVS MFU WS MDLG NDMLLPCY POL LYEAGDL. WS CPFU OIS EGLO GNNQKKPFR LYEAGD MFU NIMFRS PO OG OIS CGKE GC OIS 'CPKLO' DSOOSK GC OIS HDMPFOSXO LMEHDS, OIS FSXO EGLO NGEEGF LYEAGD PL NIMFRSU OG OIS CGKE GC OIS 'LSNGFU' DSOOSK, MFU OIS CGDDGWPFR EGLO NGEEGF LYEAGD PL NIMFRSU OG OIS CGKE GC OIS 'OIPKU' DSOOSK, MFU LG GF, QFOPD WS MNNGQFO CGK MDD OIS CGKE GC OIS 'OIPKU' DSOOSK, MFU LG GF, QFOPD WS MNNGQFO CGK MDD LYEAGDL GC OIS NKYHOGRKME WS WMFO OG LGDVS.";
-	//char *cipher = "GS WMY OG LGVDS MF SFNKYHOSU ESLLMRS, PC WS BFGW POL DMFRQMRS, PL OG CPFU M UPCCSKSFO HDMPFOSXO GC OIS LMES DMFRQMRS DGFR SFGQRI OG CPDD GFS LISSO GK LG, MFU OISF WS NGQFO OIS GNNQKKSFNSL GC SMNI DSOOSK WS NMDD OIS EGLO CKSJQSFODY GNNQKKPFR DSOOSK OIS 'CPKLO' OIS FSXO EGLO GNNQKKPFR DSOOSK OIS 'LSNGFU' OIS CGDDGWPFR EGLO GNNQKKPFR DSOOSK OIS 'OIPKU', MFU LG GF, QFOPD WS MNNGQFO CGK MDD OIS UPCCSKSFO DSOOSKL PF OIS HDMPFOSXO LMEHDS. OISF WS DGGB MO OIS NPHISK OSXO WS WMFO OG LGDVS MFU WS MDLG NDMLLPCY POL LYEAGDL. WS CPFU OIS EGLO GNNQKKPFR LMEHDS, OIS FSXO EGLO NGEEGF LYEAGD PL NUMFRSU OG OIS CGKE GC OIS OIS CGKE GC OIS 'OIPKU' DSOOSK, MFU LG GF, QFOPD WS MNNGQFO CGK MDD LYEAGDL GC OIS NKYHOGRKME WS WMFO OG LGDVS.";
+	//init plaintext (same size as cipher)
 	char plntxt[cipher_len];
 
 	// array of frequencies of each letter
@@ -108,8 +141,9 @@ int main(int argc, char *argv[]) {
 	};
 	//LC subst[] = { { .from='C', .to='s' }, { .from='P', .to='u' }, { .from='I', .to='h' } };
 
+	printf("counting frequencies...\n");
 	//count the frequency of each letter
-	for(int i = 0; i < strlen(cipher); i++) {
+	for(int i = 0; i < cipher_len; i++) {
 		//increment frequency count for each letter
 		if(cipher[i] == ' ') continue;
 		if((int)cipher[i] < 65 || (int)cipher[i] > 90) {
@@ -127,9 +161,10 @@ int main(int argc, char *argv[]) {
 #endif
 
 	//sort the frequency count
+	printf("sorting frequencies....\n");
 	qsort(&freq[0], 26, sizeof(LF), comp_letter_freq);
-	printf("sorting....\n");
 
+	//print the frequencies, and which substitutions will happen
 	for(int i = 0; i < 26; i++) {
 		//printf("%c: %d\n", (char)(i+65), freq[i].f);
 		if(i < MAX_LETTERS) {
@@ -176,9 +211,6 @@ int main(int argc, char *argv[]) {
 	printf("================\n");
 	printf("%s\n", plntxt);
 	printf("================\n");
-
-	//add 32 to convert from upper to lower case
-	printf("%d\n", 'a' - 'A');
 
 	free(cipher);
 
